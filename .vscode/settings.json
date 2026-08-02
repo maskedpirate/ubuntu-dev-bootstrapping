@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd /workspaces/ubuntu-dev-bootstrapping && python3 - <<'PY'\nimport yaml\nfrom pathlib import Path\nwith Path\\('playbook\\.yml'\\)\\.open\\(\\) as f:\n    yaml\\.safe_load\\(f\\)\nprint\\('YAML OK'\\)\nPY$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

@@ -6,6 +6,7 @@
   vars:
     kind_version: "v0.23.0"
     kubectl_version: "v1.30.0"
+    tkn_version: "v0.45.1"
     nvm_version: "v0.39.7"
     # Detect original user if run via sudo, otherwise use the current user
     target_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
@@ -172,8 +173,10 @@
     - name: Install Tekton CLI (tkn)
       become: true
       shell: |
-        curl -fsSL https://github.com/tektoncd/cli/releases/latest/download/tkn_linux_amd64 -o /usr/local/bin/tkn
-        chmod +x /usr/local/bin/tkn
+        curl -fsSL "https://github.com/tektoncd/cli/releases/download/{{ tkn_version }}/tkn-linux-amd64.tar.gz" -o /tmp/tkn.tar.gz
+        tar -xzf /tmp/tkn.tar.gz -C /tmp
+        install -m 0755 /tmp/tkn /usr/local/bin/tkn
+        rm -f /tmp/tkn /tmp/tkn.tar.gz
       args:
         executable: /bin/bash
         creates: /usr/local/bin/tkn
