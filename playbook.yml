@@ -6,7 +6,8 @@
   vars:
     kind_version: "v0.23.0"
     kubectl_version: "v1.30.0"
-
+    nvm_version: "v0.39.7"
+    
   tasks:
     - name: Update apt cache
       apt:
