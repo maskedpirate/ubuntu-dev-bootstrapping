@@ -184,8 +184,10 @@
     - name: Install ko
       become: true
       shell: |
-        curl -fsSL https://github.com/ko-build/ko/releases/latest/download/ko-linux-amd64 -o /usr/local/bin/ko
-        chmod +x /usr/local/bin/ko
+        curl -fsSL "https://github.com/ko-build/ko/releases/download/v0.19.1/ko_0.19.1_Linux_x86_64.tar.gz" -o /tmp/ko.tar.gz
+        tar -xzf /tmp/ko.tar.gz -C /tmp
+        install -m 0755 /tmp/ko /usr/local/bin/ko
+        rm -f /tmp/ko /tmp/ko.tar.gz
       args:
         executable: /bin/bash
         creates: /usr/local/bin/ko
