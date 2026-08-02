@@ -23,6 +23,7 @@
       apt:
         name:
           - apt-transport-https
+          - bash-completion
           - ca-certificates
           - gnupg
           - lsb-release
@@ -140,6 +141,36 @@
       args:
         executable: /bin/bash
         creates: "{{ target_home }}/.local/bin/fireconnect"
+
+    - name: Configure Git aliases
+      become: true
+      become_user: "{{ target_user }}"
+      environment:
+        HOME: "{{ target_home }}"
+      shell: |
+        git config --global alias.co checkout
+        git config --global alias.cm commit -m
+        git config --global alias.rv "remote -vv"
+        git config --global alias.bv "branch -avv"
+        git config --global alias.st status
+
+    - name: Configure kubectl alias and bash completion
+      become: true
+      become_user: "{{ target_user }}"
+      blockinfile:
+        path: "{{ target_home }}/.bashrc"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - KUBECTL ALIAS"
+        content: |
+          # Enable bash completion for kubectl and alias it to k
+          if [ -f /etc/bash_completion ]; then
+            . /etc/bash_completion
+          fi
+
+          if command -v kubectl >/dev/null 2>&1; then
+            alias k='kubectl'
+            source <(kubectl completion bash)
+            complete -o default -F __start_kubectl k
+          fi
 
     - name: Configure custom multi-line bash prompt with Git and K8s context
       become: true
