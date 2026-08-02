@@ -68,8 +68,25 @@
           prompt:
             disable: true
 
+    - name: Install NVM, Node 24, and set as default
+      shell: |
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_version }}/install.sh | bash
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        nvm install 24
+        nvm alias default 24
+      args:
+        executable: /bin/bash
+        creates: /root/.nvm/nvm.sh
+
     - name: Install Fireworks AI Connect (FireConnect)
-      shell: curl -fsSL https://fireconnect.fireworks.ai/install.sh | bash
+      shell: |
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        curl -fsSL https://fireconnect.fireworks.ai/install.sh | bash
+      args:
+        executable: /bin/bash
+        creates: /root/.local/bin/fireconnect
 
     - name: Configure custom multi-line bash prompt with Git and K8s context
       blockinfile:
