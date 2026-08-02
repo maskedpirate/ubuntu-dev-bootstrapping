@@ -169,6 +169,33 @@
         executable: /bin/bash
         creates: "{{ target_home }}/.local/bin/smee"
 
+    - name: Install Tekton CLI (tkn)
+      become: true
+      shell: |
+        curl -sL https://api.github.com/repos/tektoncd/cli/releases/latest | grep -oP '"browser_download_url": "\K(https://[^\"]*linux-amd64[^\"]*)' | head -n 1 | xargs -r curl -fsSL -o /usr/local/bin/tkn
+        chmod +x /usr/local/bin/tkn
+      args:
+        executable: /bin/bash
+        creates: /usr/local/bin/tkn
+
+    - name: Install ko
+      become: true
+      shell: |
+        curl -fsSL https://github.com/ko-build/ko/releases/latest/download/ko-linux-amd64 -o /usr/local/bin/ko
+        chmod +x /usr/local/bin/ko
+      args:
+        executable: /bin/bash
+        creates: /usr/local/bin/ko
+
+    - name: Install kustomize
+      become: true
+      shell: |
+        curl -sL https://api.github.com/repos/kubernetes-sigs/kustomize/releases/latest | grep -oP '"browser_download_url": "\K(https://[^\"]*kustomize/v[^\"]+/linux/amd64[^\"]*)' | head -n 1 | xargs -r curl -fsSL -o /usr/local/bin/kustomize
+        chmod +x /usr/local/bin/kustomize
+      args:
+        executable: /bin/bash
+        creates: /usr/local/bin/kustomize
+
     - name: Configure Git aliases
       become: true
       become_user: "{{ target_user }}"
