@@ -6,13 +6,13 @@ REPO_URL=${1:-"https://github.com/maskedpirate/ubuntu-dev-bootstrapping.git"}
 REPO_DIR="/opt/kind-cluster-setup"
 
 echo "Updating system and installing base prerequisites..."
-apt-get update
+sudo sudo apt-get update
 apt-get install -y software-properties-common git curl
 
 echo "Installing Ansible..."
-apt-add-repository -y ppa:ansible/ansible
-apt-get update
-apt-get install -y ansible
+sudo apt-add-repository -y ppa:ansible/ansible
+sudo apt-get update
+sudo apt-get install -y ansible
 
 echo "Cloning repository..."
 if [ -d "$REPO_DIR" ]; then
