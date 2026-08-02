@@ -118,6 +118,22 @@
           prompt:
             disable: true
 
+    - name: Install kube-ps1 prompt helper
+      become: true
+      become_user: "{{ target_user }}"
+      file:
+        path: "{{ target_home }}/.local/share"
+        state: directory
+        mode: '0755'
+
+    - name: Download kube-ps1 prompt helper script
+      become: true
+      become_user: "{{ target_user }}"
+      get_url:
+        url: "https://raw.githubusercontent.com/jonmosco/kube-ps1/master/kube-ps1.sh"
+        dest: "{{ target_home }}/.local/share/kube-ps1.sh"
+        mode: '0644'
+
     - name: Install NVM, Node 24, and set as default
       become: true
       become_user: "{{ target_user }}"
@@ -185,24 +201,45 @@
             export GIT_PS1_SHOWDIRTYSTATE=1
           fi
 
+          if [ -f "{{ target_home }}/.local/share/kube-ps1.sh" ]; then
+            source "{{ target_home }}/.local/share/kube-ps1.sh"
+          fi
+
           function _custom_multiline_prompt() {
             local reset="\[\e[0m\]"
             local path_color="\[\e[36m\]"  # Cyan
             local user_color="\[\e[32m\]"  # Green
             local ctx_color="\[\e[34m\]"   # Blue
             local git_color="\[\e[33m\]"   # Yellow
-            
+
             # Line 1: Full absolute directory path
             local line1="${path_color}${PWD}${reset}"
-            
+
             # Line 2: User
             local line2="${user_color}\u${reset}"
-            
-            # Append Kubie K8s context if active
-            if [ -n "$KUBIE_CONTEXT" ]; then
-              line2="${line2} ${ctx_color}[k8s: ${KUBIE_CONTEXT}|${KUBIE_NAMESPACE:-default}]${reset}"
+
+            local kube_prompt=""
+            if type kube_ps1 >/dev/null 2>&1; then
+              kube_prompt="$(kube_ps1)"
             fi
-            
+
+            if [ -z "$kube_prompt" ] && command -v kubectl >/dev/null 2>&1; then
+              local kube_context
+              kube_context="$(kubectl config current-context 2>/dev/null || true)"
+              if [ -n "$kube_context" ]; then
+                local kube_namespace
+                kube_namespace="$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null || true)"
+                if [ -z "$kube_namespace" ]; then
+                  kube_namespace="default"
+                fi
+                kube_prompt="[k8s: ${kube_context}|${kube_namespace}]"
+              fi
+            fi
+
+            if [ -n "$kube_prompt" ]; then
+              line2="${line2} ${ctx_color}${kube_prompt}${reset}"
+            fi
+
             # Append Git context if in a repository
             if type __git_ps1 >/dev/null 2>&1; then
               local git_info
@@ -211,7 +248,7 @@
                 line2="${line2}${git_color}${git_info}${reset}"
               fi
             fi
-            
+
             # Set the PS1 with a standard ($) prompt character
             PS1="\n${line1}\n${line2} $ "
           }
