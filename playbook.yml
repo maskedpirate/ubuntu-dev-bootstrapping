@@ -7,9 +7,14 @@
     kind_version: "v0.23.0"
     kubectl_version: "v1.30.0"
     nvm_version: "v0.39.7"
+    # Detect original user if run via sudo, otherwise use the current user
+    target_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
+    # Dynamically set the home path based on the detected user
+    target_home: "{{ '/root' if target_user == 'root' else '/home/' + target_user }}"
     
   tasks:
     - name: Update apt cache
+      become: true
       apt:
         update_cache: yes
 
@@ -25,15 +30,9 @@
     
     - name: Install Vim text editor
       become: true
-      hosts: all
-      become: yes
-      tasks:
-        - name: Install Vim on Debian and Ubuntu systems
-          ansible.builtin.apt:
-            name: vim
-            state: present
-            update_cache: yes
-          when: ansible_os_family == "Debian"
+      apt:
+        name: vim
+        state: present
 
     - name: Add GitHub CLI GPG key and repository
       become: true
@@ -88,43 +87,51 @@
         mode: '0755'
 
     - name: Ensure Kubie config directory exists
+      become: true
+      become_user: "{{ target_user }}"
       file:
-        path: /root/.config/kubie
+        path: "{{ target_home }}/.config/kubie"
         state: directory
         mode: '0755'
 
     - name: Configure Kubie to disable default prompt modification
+      become: true
+      become_user: "{{ target_user }}"
       copy:
-        dest: /root/.config/kubie/kubie.yaml
+        dest: "{{ target_home }}/.config/kubie/kubie.yaml"
         content: |
           prompt:
             disable: true
 
     - name: Install NVM, Node 24, and set as default
       become: true
+      become_user: "{{ target_user }}"
       shell: |
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_version }}/install.sh | bash
-        export NVM_DIR="$HOME/.nvm"
+        export NVM_DIR="{{ target_home }}/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
         nvm install 24
         nvm alias default 24
       args:
         executable: /bin/bash
-        creates: /root/.nvm/nvm.sh
+        creates: "{{ target_home }}/.nvm/nvm.sh"
 
     - name: Install Fireworks AI Connect (FireConnect)
-    become: true
+      become: true
+      become_user: "{{ target_user }}"
       shell: |
-        export NVM_DIR="$HOME/.nvm"
+        export NVM_DIR="{{ target_home }}/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
         curl -fsSL https://fireconnect.fireworks.ai/install.sh | bash
       args:
         executable: /bin/bash
-        creates: /root/.local/bin/fireconnect
+        creates: "{{ target_home }}/.local/bin/fireconnect"
 
     - name: Configure custom multi-line bash prompt with Git and K8s context
+      become: true
+      become_user: "{{ target_user }}"
       blockinfile:
-        path: /root/.bashrc
+        path: "{{ target_home }}/.bashrc"
         marker: "# {mark} ANSIBLE MANAGED BLOCK - CUSTOM PROMPT"
         content: |
           # Load Git prompt functionality (included with Ubuntu git package)
@@ -160,7 +167,7 @@
               fi
             fi
             
-            # Set the PS1 with a root (#) prompt character
-            PS1="\n${line1}\n${line2} # "
+            # Set the PS1 with a standard ($) prompt character
+            PS1="\n${line1}\n${line2} $ "
           }
           PROMPT_COMMAND="_custom_multiline_prompt"
