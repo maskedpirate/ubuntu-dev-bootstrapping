@@ -48,3 +48,65 @@
       shell: curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
       args:
         creates: /usr/local/bin/helm
+
+    - name: Download and install Kubie
+      get_url:
+        url: "https://github.com/sbstp/kubie/releases/download/v0.24.0/kubie-linux-amd64"
+        dest: /usr/local/bin/kubie
+        mode: '0755'
+
+    - name: Ensure Kubie config directory exists
+      file:
+        path: /root/.config/kubie
+        state: directory
+        mode: '0755'
+
+    - name: Configure Kubie to disable default prompt modification
+      copy:
+        dest: /root/.config/kubie/kubie.yaml
+        content: |
+          prompt:
+            disable: true
+
+    - name: Configure custom multi-line bash prompt with Git and K8s context
+      blockinfile:
+        path: /root/.bashrc
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - CUSTOM PROMPT"
+        content: |
+          # Load Git prompt functionality (included with Ubuntu git package)
+          if [ -f /usr/lib/git-core/git-sh-prompt ]; then
+            source /usr/lib/git-core/git-sh-prompt
+            export GIT_PS1_SHOWDIRTYSTATE=1
+          fi
+
+          function _custom_multiline_prompt() {
+            local reset="\[\e[0m\]"
+            local path_color="\[\e[36m\]"  # Cyan
+            local user_color="\[\e[32m\]"  # Green
+            local ctx_color="\[\e[34m\]"   # Blue
+            local git_color="\[\e[33m\]"   # Yellow
+            
+            # Line 1: Full absolute directory path
+            local line1="${path_color}${PWD}${reset}"
+            
+            # Line 2: User
+            local line2="${user_color}\u${reset}"
+            
+            # Append Kubie K8s context if active
+            if [ -n "$KUBIE_CONTEXT" ]; then
+              line2="${line2} ${ctx_color}[k8s: ${KUBIE_CONTEXT}|${KUBIE_NAMESPACE:-default}]${reset}"
+            fi
+            
+            # Append Git context if in a repository
+            if type __git_ps1 >/dev/null 2>&1; then
+              local git_info
+              git_info=$(__git_ps1 ' [git: %s]')
+              if [ -n "$git_info" ]; then
+                line2="${line2}${git_color}${git_info}${reset}"
+              fi
+            fi
+            
+            # Set the PS1 with a root (#) prompt character
+            PS1="\n${line1}\n${line2} # "
+          }
+          PROMPT_COMMAND="_custom_multiline_prompt"
