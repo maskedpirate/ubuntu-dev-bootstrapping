@@ -68,6 +68,9 @@
           prompt:
             disable: true
 
+    - name: Install Fireworks AI Connect (FireConnect)
+      shell: curl -fsSL https://fireconnect.fireworks.ai/install.sh | bash
+
     - name: Configure custom multi-line bash prompt with Git and K8s context
       blockinfile:
         path: /root/.bashrc
