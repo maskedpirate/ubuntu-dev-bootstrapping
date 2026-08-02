@@ -14,6 +14,7 @@
         update_cache: yes
 
     - name: Install base packages
+      become: true
       apt:
         name:
           - apt-transport-https
@@ -21,8 +22,21 @@
           - gnupg
           - lsb-release
         state: present
+    
+    - name: Install Vim text editor
+      become: true
+      hosts: all
+      become: yes
+      tasks:
+        - name: Install Vim on Debian and Ubuntu systems
+          ansible.builtin.apt:
+            name: vim
+            state: present
+            update_cache: yes
+          when: ansible_os_family == "Debian"
 
     - name: Add GitHub CLI GPG key and repository
+      become: true
       shell: |
         curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
         chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
@@ -31,6 +45,7 @@
         creates: /etc/apt/sources.list.d/github-cli.list
 
     - name: Install Docker and GitHub CLI
+      become: true
       apt:
         name: 
           - docker.io
@@ -39,29 +54,34 @@
         update_cache: yes
 
     - name: Ensure Docker service is running
+      become: true
       service:
         name: docker
         state: started
         enabled: yes
 
     - name: Download and install KinD
+      become: true
       get_url:
         url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-amd64"
         dest: /usr/local/bin/kind
         mode: '0755'
 
     - name: Download and install kubectl
+      become: true
       get_url:
         url: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
         dest: /usr/local/bin/kubectl
         mode: '0755'
 
     - name: Install Helm
+      become: true
       shell: curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
       args:
         creates: /usr/local/bin/helm
 
     - name: Download and install Kubie
+      become: true
       get_url:
         url: "https://github.com/sbstp/kubie/releases/download/v0.24.0/kubie-linux-amd64"
         dest: /usr/local/bin/kubie
@@ -81,6 +101,7 @@
             disable: true
 
     - name: Install NVM, Node 24, and set as default
+      become: true
       shell: |
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_version }}/install.sh | bash
         export NVM_DIR="$HOME/.nvm"
@@ -92,6 +113,7 @@
         creates: /root/.nvm/nvm.sh
 
     - name: Install Fireworks AI Connect (FireConnect)
+    become: true
       shell: |
         export NVM_DIR="$HOME/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
