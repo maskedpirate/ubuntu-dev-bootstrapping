@@ -22,10 +22,21 @@
           - lsb-release
         state: present
 
-    - name: Install Docker
+    - name: Add GitHub CLI GPG key and repository
+      shell: |
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list
+      args:
+        creates: /etc/apt/sources.list.d/github-cli.list
+
+    - name: Install Docker and GitHub CLI
       apt:
-        name: docker.io
+        name: 
+          - docker.io
+          - gh
         state: present
+        update_cache: yes
 
     - name: Ensure Docker service is running
       service:
