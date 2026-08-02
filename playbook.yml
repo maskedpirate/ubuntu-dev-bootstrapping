@@ -173,7 +173,7 @@
     - name: Install Tekton CLI (tkn)
       become: true
       shell: |
-        curl -fsSL "https://github.com/tektoncd/cli/releases/download/{{ tkn_version }}/tkn-linux-amd64.tar.gz" -o /tmp/tkn.tar.gz
+        curl -fsSL "https://github.com/tektoncd/cli/releases/download/{{ tkn_version }}/tkn_{{ tkn_version | regex_replace('^v', '') }}_Linux_x86_64.tar.gz" -o /tmp/tkn.tar.gz
         tar -xzf /tmp/tkn.tar.gz -C /tmp
         install -m 0755 /tmp/tkn /usr/local/bin/tkn
         rm -f /tmp/tkn /tmp/tkn.tar.gz
