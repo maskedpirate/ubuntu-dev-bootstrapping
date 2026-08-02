@@ -59,6 +59,20 @@
         state: started
         enabled: yes
 
+    - name: Ensure Docker service is running
+      become: true
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add target user to the docker group
+      become: true
+      user:
+        name: "{{ target_user }}"
+        groups: docker
+        append: yes
+
     - name: Download and install KinD
       become: true
       get_url:
