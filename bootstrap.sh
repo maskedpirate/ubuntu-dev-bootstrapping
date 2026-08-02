@@ -7,7 +7,7 @@ REPO_DIR="/opt/kind-cluster-setup"
 
 echo "Updating system and installing base prerequisites..."
 sudo sudo apt-get update
-apt-get install -y software-properties-common git curl
+sudo apt-get install -y software-properties-common git curl
 
 echo "Installing Ansible..."
 sudo apt-add-repository -y ppa:ansible/ansible
