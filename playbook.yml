@@ -158,6 +158,17 @@
         executable: /bin/bash
         creates: "{{ target_home }}/.local/bin/fireconnect"
 
+    - name: Install Smee CLI globally with npm
+      become: true
+      become_user: "{{ target_user }}"
+      shell: |
+        export NVM_DIR="{{ target_home }}/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        npm install -g smee-client
+      args:
+        executable: /bin/bash
+        creates: "{{ target_home }}/.local/bin/smee"
+
     - name: Configure Git aliases
       become: true
       become_user: "{{ target_user }}"
