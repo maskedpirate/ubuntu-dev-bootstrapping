@@ -374,7 +374,6 @@
         mode: '0755'
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
-        group: root
       become_user: "{{ target_user }}"
 
     - name: Download and extract Tiling Assistant extension
@@ -389,7 +388,22 @@
     - name: Enable the Tiling Assistant extension
       ansible.builtin.command: "gnome-extensions enable {{ tiling_extension_uuid }}"
       register: extension_enable_result
+      become: true
       become_user: "{{ target_user }}"
       changed_when: "'already enabled' not in extension_enable_result.stderr"
       failed_when: false
+
+    - name: Enable Tiling Assistant Advanced Layouts Features
+      ansible.builtin.command: "gsettings set org.gnome.shell.extensions.tiling-assistant {{ item.key }} {{ item.value }}"
+      loop:
+        - { key: 'enable-advanced-experimental-features', value: 'true' }
+        - { key: 'show-layout-panel-indicator', value: 'true' }
+        - { key: 'import-layout-examples', value: 'true' }
+      environment:
+        DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/1000/bus"
+      become: true
+      become_user: "{{ target_user }}"
+      register: gsettings_output
+      changed_when: false
+
 
