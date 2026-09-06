@@ -12,6 +12,9 @@
     target_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
     # Dynamically set the home path based on the detected user
     target_home: "{{ '/root' if target_user == 'root' else '/home/' + target_user }}"
+    #
+    # The official unique identifier for Tiling Assistant
+    tiling_extension_uuid: "tiling-assistant@leleat-on-github"
 
     
   tasks:
@@ -31,6 +34,8 @@
           - lsb-release
           - tree
           - git
+          - gnome-browser-connector
+          - gnome-shell-extension-manager
         state: present
     
     - name: Install Vim text editor
@@ -361,3 +366,30 @@
             PS1="\n${line1}\n${line2} $ "
           }
           PROMPT_COMMAND="_custom_multiline_prompt"
+
+    - name: Ensure GNOME extensions local directory exists
+      ansible.builtin.file:
+        path: "{{ target_home }}/.local/share/gnome-shell/extensions/{{ tiling_extension_uuid }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        group: root
+      become_user: "{{ target_user }}"
+
+    - name: Download and extract Tiling Assistant extension
+      ansible.builtin.unarchive:
+        src: "https://extensions.gnome.org/extension-data/tiling-assistantleleat-on-github.v54.shell-extension.zip"
+        dest: "{{ target_home }}/.local/share/gnome-shell/extensions/{{ tiling_extension_uuid }}"
+        remote_src: yes
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+      become_user: "{{ target_user }}"
+
+    - name: Enable the Tiling Assistant extension
+      ansible.builtin.command: "gnome-extensions enable {{ tiling_extension_uuid }}"
+      register: extension_enable_result
+      become_user: "{{ target_user }}"
+      changed_when: "'already enabled' not in extension_enable_result.stderr"
+      failed_when: false
+
