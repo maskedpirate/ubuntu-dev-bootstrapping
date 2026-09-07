@@ -15,8 +15,12 @@
     #
     # The official unique identifier for Tiling Assistant
     tiling_extension_uuid: "tiling-assistant@leleat-on-github"
+    #
+    # Local DNS Configuration for KinD
+    kind_dnsmasq_port: 5354
+    kind_control_plane_ip: "172.24.0.10"
+    kind_local_domain: "devkit"
 
-    
   tasks:
     - name: Update apt cache
       become: true
@@ -37,7 +41,7 @@
           - gnome-browser-connector
           - gnome-shell-extension-manager
         state: present
-    
+
     - name: Install Vim text editor
       become: true
       apt:
@@ -61,13 +65,6 @@
           - gh
         state: present
         update_cache: yes
-
-    - name: Ensure Docker service is running
-      become: true
-      service:
-        name: docker
-        state: started
-        enabled: yes
 
     - name: Ensure Docker service is running
       become: true
@@ -406,4 +403,85 @@
       register: gsettings_output
       changed_when: false
 
+    # -------------------------------------------------------------------------
+    # DNS Configuration: dnsmasq & systemd-resolved for KinD wildcard routing
+    # -------------------------------------------------------------------------
+
+    - name: Install dnsmasq and dnsutils
+      become: true
+      apt:
+        name:
+          - dnsmasq
+          - dnsutils
+        state: present
+
+    - name: Configure dnsmasq for KinD local wildcard domain
+      become: true
+      copy:
+        dest: "/etc/dnsmasq.d/{{ kind_local_domain }}.conf"
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          # Listen on loopback alternate port to avoid port 53 collision with systemd-resolved
+          port={{ kind_dnsmasq_port }}
+          listen-address=127.0.0.1
+          bind-interfaces
+
+          # Do not read upstream hosts or resolv.conf
+          no-resolv
+          no-hosts
+
+          # Wildcard routing for KinD Traefik/Ingress alias IP
+          address=/{{ kind_local_domain }}/{{ kind_control_plane_ip }}
+      notify: Restart dnsmasq
+
+    - name: Ensure systemd-resolved drop-in directory exists
+      become: true
+      file:
+        path: /etc/systemd/resolved.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Configure systemd-resolved routing domain for KinD
+      become: true
+      copy:
+        dest: "/etc/systemd/resolved.conf.d/{{ kind_local_domain }}.conf"
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Resolve]
+          DNS=127.0.0.1:{{ kind_dnsmasq_port }}
+          Domains=~{{ kind_local_domain }}
+      notify: Restart systemd-resolved
+
+    - name: Ensure dnsmasq service is enabled and running
+      become: true
+      service:
+        name: dnsmasq
+        state: started
+        enabled: yes
+
+    - name: Ensure systemd-resolved service is enabled and running
+      become: true
+      service:
+        name: systemd-resolved
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart dnsmasq
+      become: true
+      service:
+        name: dnsmasq
+        state: restarted
+
+    - name: Restart systemd-resolved
+      become: true
+      service:
+        name: systemd-resolved
+        state: restarted
 
