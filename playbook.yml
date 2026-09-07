@@ -235,6 +235,15 @@
         executable: /bin/bash
         creates: "{{ target_home }}/.local/bin/smee"
 
+    - name: Install Claude Code via installer script
+      become: true
+      become_user: "{{ target_user }}"
+      shell:
+        cmd: curl -fsSL https://claude.ai/install.sh | bash
+        creates: "{{ target_home }}/.claude/bin/claude"
+      environment:
+        HOME: "{{ target_home }}"
+
     - name: Install Tekton CLI (tkn)
       become: true
       shell: |
