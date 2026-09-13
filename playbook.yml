@@ -87,6 +87,18 @@
         dest: /usr/local/bin/kind
         mode: '0755'
 
+    - name: Configure sysctl limits for KinD (inotify)
+      become: true
+      copy:
+        dest: /etc/sysctl.d/99-kind.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          fs.inotify.max_user_instances=8192
+          fs.inotify.max_user_watches=524288
+      notify: Apply sysctl settings
+
     - name: Download and install kubectl
       become: true
       get_url:
@@ -493,4 +505,8 @@
       service:
         name: systemd-resolved
         state: restarted
+
+    - name: Apply sysctl settings
+      become: true
+      command: sysctl --system
 
