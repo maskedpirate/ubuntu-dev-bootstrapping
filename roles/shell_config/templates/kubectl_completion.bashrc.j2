@@ -1,0 +1,10 @@
+# Enable bash completion for kubectl and alias it to k
+if [ -f /etc/bash_completion ]; then
+  . /etc/bash_completion
+fi
+
+if command -v kubectl >/dev/null 2>&1; then
+  alias k='kubectl'
+  source <(kubectl completion bash)
+  complete -o default -F __start_kubectl k
+fi

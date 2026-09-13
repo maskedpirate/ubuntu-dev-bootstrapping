@@ -1,0 +1,29 @@
+---
+- name: Install NVM, Node 24, and set as default
+  shell: |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_version }}/install.sh | bash
+    export NVM_DIR="{{ target_home }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install 24
+    nvm alias default 24
+  args:
+    executable: /bin/bash
+    creates: "{{ target_home }}/.nvm/nvm.sh"
+
+- name: Install Fireworks AI Connect (FireConnect)
+  shell: |
+    export NVM_DIR="{{ target_home }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    curl -fsSL https://fireconnect.fireworks.ai/install.sh | bash
+  args:
+    executable: /bin/bash
+    creates: "{{ target_home }}/.local/bin/fireconnect"
+
+- name: Install Smee CLI globally with npm
+  shell: |
+    export NVM_DIR="{{ target_home }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    npm install -g smee-client
+  args:
+    executable: /bin/bash
+    creates: "{{ target_home }}/.local/bin/smee"

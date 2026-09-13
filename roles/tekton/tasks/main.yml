@@ -1,0 +1,22 @@
+---
+- name: Install Tekton CLI (tkn)
+  become: true
+  shell: |
+    curl -fsSL "https://github.com/tektoncd/cli/releases/download/{{ tkn_version }}/tkn_{{ tkn_version | regex_replace('^v', '') }}_Linux_x86_64.tar.gz" -o /tmp/tkn.tar.gz
+    tar -xzf /tmp/tkn.tar.gz -C /tmp
+    install -m 0755 /tmp/tkn /usr/local/bin/tkn
+    rm -f /tmp/tkn /tmp/tkn.tar.gz
+  args:
+    executable: /bin/bash
+    creates: /usr/local/bin/tkn
+
+- name: Install ko
+  become: true
+  shell: |
+    curl -fsSL "https://github.com/ko-build/ko/releases/download/{{ ko_version }}/ko_{{ ko_version | regex_replace('^v', '') }}_Linux_x86_64.tar.gz" -o /tmp/ko.tar.gz
+    tar -xzf /tmp/ko.tar.gz -C /tmp
+    install -m 0755 /tmp/ko /usr/local/bin/ko
+    rm -f /tmp/ko /tmp/ko.tar.gz
+  args:
+    executable: /bin/bash
+    creates: /usr/local/bin/ko

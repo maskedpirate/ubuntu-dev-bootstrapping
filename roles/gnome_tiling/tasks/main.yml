@@ -1,0 +1,29 @@
+---
+- name: Ensure GNOME extensions local directory exists
+  file:
+    path: "{{ target_home }}/.local/share/gnome-shell/extensions/{{ tiling_extension_uuid }}"
+    state: directory
+    mode: '0755'
+
+- name: Download and extract Tiling Assistant extension
+  unarchive:
+    src: "https://extensions.gnome.org/extension-data/tiling-assistantleleat-on-github.v54.shell-extension.zip"
+    dest: "{{ target_home }}/.local/share/gnome-shell/extensions/{{ tiling_extension_uuid }}"
+    remote_src: yes
+
+- name: Enable the Tiling Assistant extension
+  command: "gnome-extensions enable {{ tiling_extension_uuid }}"
+  register: extension_enable_result
+  changed_when: "'already enabled' not in extension_enable_result.stderr"
+  failed_when: false
+
+- name: Enable Tiling Assistant Advanced Layouts Features
+  command: "gsettings set org.gnome.shell.extensions.tiling-assistant {{ item.key }} {{ item.value }}"
+  loop:
+    - { key: 'enable-advanced-experimental-features', value: 'true' }
+    - { key: 'show-layout-panel-indicator', value: 'true' }
+    - { key: 'import-layout-examples', value: 'true' }
+  environment:
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ ansible_user_uid }}/bus"
+  register: gsettings_output
+  changed_when: false

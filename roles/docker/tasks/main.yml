@@ -1,0 +1,20 @@
+---
+- name: Install Docker
+  become: true
+  apt:
+    name: docker.io
+    state: present
+
+- name: Ensure Docker service is running
+  become: true
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Add target user to the docker group
+  become: true
+  user:
+    name: "{{ target_user }}"
+    groups: docker
+    append: yes

@@ -1,0 +1,41 @@
+---
+- name: Download and install Kubie
+  become: true
+  get_url:
+    url: "https://github.com/kubie-org/kubie/releases/download/{{ kubie_version }}/kubie-linux-amd64"
+    dest: /usr/local/bin/kubie
+    mode: '0755'
+
+- name: Ensure Kubie config directory exists
+  file:
+    path: "{{ target_home }}/.config/kubie"
+    state: directory
+    mode: '0755'
+
+- name: Configure Kubie to disable default prompt modification
+  copy:
+    dest: "{{ target_home }}/.config/kubie/kubie.yaml"
+    content: |
+      prompt:
+        disable: true
+
+- name: Deploy dynamic bash completion for kubie
+  become: true
+  copy:
+    src: kubie-completion.bash
+    dest: /etc/bash_completion.d/kubie
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure local share directory exists
+  file:
+    path: "{{ target_home }}/.local/share"
+    state: directory
+    mode: '0755'
+
+- name: Download kube-ps1 prompt helper script
+  get_url:
+    url: "https://raw.githubusercontent.com/jonmosco/kube-ps1/master/kube-ps1.sh"
+    dest: "{{ target_home }}/.local/share/kube-ps1.sh"
+    mode: '0644'

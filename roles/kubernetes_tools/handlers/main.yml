@@ -1,0 +1,4 @@
+---
+- name: Apply sysctl settings
+  become: true
+  command: sysctl --system

@@ -1,0 +1,24 @@
+---
+- name: Configure Git aliases
+  shell: |
+    git config --global alias.co checkout
+    git config --global alias.cm "commit -m"
+    git config --global alias.rv "remote -vv"
+    git config --global alias.bv "branch -avv"
+    git config --global alias.st status
+    git config --global diff.tool vimdiff
+    git config --global difftool.prompt false
+  args:
+    executable: /bin/bash
+
+- name: Configure kubectl alias and bash completion
+  blockinfile:
+    path: "{{ target_home }}/.bashrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - KUBECTL ALIAS"
+    content: "{{ lookup('template', 'kubectl_completion.bashrc.j2') }}"
+
+- name: Configure custom multi-line bash prompt with Git and K8s context
+  blockinfile:
+    path: "{{ target_home }}/.bashrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - CUSTOM PROMPT"
+    content: "{{ lookup('template', 'custom_prompt.bashrc.j2') }}"

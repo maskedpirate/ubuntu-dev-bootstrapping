@@ -1,0 +1,44 @@
+---
+- name: Download and install KinD
+  become: true
+  get_url:
+    url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-amd64"
+    dest: /usr/local/bin/kind
+    mode: '0755'
+
+- name: Configure sysctl limits for KinD (inotify)
+  become: true
+  copy:
+    dest: /etc/sysctl.d/99-kind.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      fs.inotify.max_user_instances=8192
+      fs.inotify.max_user_watches=524288
+  notify: Apply sysctl settings
+
+- name: Download and install kubectl
+  become: true
+  get_url:
+    url: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+    dest: /usr/local/bin/kubectl
+    mode: '0755'
+
+- name: Install Helm
+  become: true
+  shell: curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  args:
+    executable: /bin/bash
+    creates: /usr/local/bin/helm
+
+- name: Install kustomize
+  become: true
+  shell: |
+    curl -fsSL https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh | bash
+    install -m 0755 kustomize /usr/local/bin/kustomize
+    rm -f kustomize
+  args:
+    executable: /bin/bash
+    chdir: /tmp
+    creates: /usr/local/bin/kustomize

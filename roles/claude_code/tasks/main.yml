@@ -1,0 +1,5 @@
+---
+- name: Install Claude Code via installer script
+  shell:
+    cmd: curl -fsSL https://claude.ai/install.sh | bash
+    creates: "{{ target_home }}/.claude/bin/claude"

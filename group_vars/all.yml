@@ -1,0 +1,22 @@
+---
+# Tool versions, pinned so upgrades are deliberate.
+kind_version: "v0.23.0"
+kubectl_version: "v1.30.0"
+tkn_version: "v0.45.1"
+ko_version: "v0.19.1"
+kubie_version: "v0.28.0"
+nvm_version: "v0.39.7"
+
+# The user the playbook is being run as (no sudo needed to invoke it), and
+# their home directory. Per-task `become: true` escalates only where root
+# is actually required.
+target_user: "{{ ansible_user_id }}"
+target_home: "{{ ansible_env.HOME }}"
+
+# The official unique identifier for Tiling Assistant
+tiling_extension_uuid: "tiling-assistant@leleat-on-github"
+
+# Local DNS configuration for KinD
+kind_dnsmasq_port: 5354
+kind_control_plane_ip: "172.24.0.10"
+kind_local_domain: "devkit"

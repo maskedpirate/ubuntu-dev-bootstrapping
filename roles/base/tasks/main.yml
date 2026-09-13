@@ -1,0 +1,22 @@
+---
+- name: Update apt cache
+  become: true
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install base packages
+  become: true
+  apt:
+    name:
+      - apt-transport-https
+      - bash-completion
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - tree
+      - git
+      - vim
+      - gnome-browser-connector
+      - gnome-shell-extension-manager
+    state: present
