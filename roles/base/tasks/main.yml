@@ -19,4 +19,5 @@
       - vim
       - gnome-browser-connector
       - gnome-shell-extension-manager
+      - libnss3-tools
     state: present
