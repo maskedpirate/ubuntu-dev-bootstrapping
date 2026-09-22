@@ -22,3 +22,9 @@
     path: "{{ target_home }}/.bashrc"
     marker: "# {mark} ANSIBLE MANAGED BLOCK - CUSTOM PROMPT"
     content: "{{ lookup('template', 'custom_prompt.bashrc.j2') }}"
+
+- name: Install .vimrc
+  copy:
+    src: vimrc
+    dest: "{{ target_home }}/.vimrc"
+    mode: "0644"

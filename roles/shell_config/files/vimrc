@@ -1,0 +1,34 @@
+" General Developer Settings
+set nocompatible         " Turn off VI compatibility
+syntax on                " Turn on syntax colors
+filetype plugin indent on " Load file type rules
+set encoding=utf-8       " Use UTF-8 encoding
+set number               " Show line numbers
+"set relativenumber       " Show relative line numbers
+"set cursorline           " Highlight current line
+"set mouse=a              " Turn on mouse support
+set hidden               " Keep hidden buffers without saving
+
+" Spaces Instead of Tabs (Default 4 spaces)
+set expandtab            " Pressing Tab inserts spaces
+set tabstop=2            " Width of tab character
+set softtabstop=2        " Spaces inserted with Tab key
+set shiftwidth=2         " Spaces used for auto-indent
+set smarttab             " Use shiftwidth at start of line
+
+" Search and Scroll
+set incsearch            " Show search matches as you type
+set ignorecase           " Ignore case when searching
+set smartcase            " Override ignorecase if search has caps
+set scrolloff=8          " Keep 8 lines visible when scrolling
+
+" Clean UI
+set nobackup             " Do not keep backup files
+set noswapfile           " Do not create swap files
+set wrap                 " Wrap long lines
+set linebreak            " Wrap at word boundaries, not mid-word
+
+set hlsearch
+
+colorscheme zaibatsu
+
