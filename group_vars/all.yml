@@ -15,8 +15,3 @@ target_home: "{{ ansible_env.HOME }}"
 
 # The official unique identifier for Tiling Assistant
 tiling_extension_uuid: "tiling-assistant@leleat-on-github"
-
-# Local DNS configuration for KinD
-kind_dnsmasq_port: 5354
-kind_control_plane_ip: "172.24.0.10"
-kind_local_domain: "devkit"

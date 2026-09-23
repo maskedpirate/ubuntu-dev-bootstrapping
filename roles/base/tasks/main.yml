@@ -20,4 +20,5 @@
       - gnome-browser-connector
       - gnome-shell-extension-manager
       - libnss3-tools
+      - awscli
     state: present

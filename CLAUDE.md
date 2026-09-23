@@ -6,10 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An Ansible playbook that bootstraps a fresh Ubuntu machine into a KinD (Kubernetes-in-Docker)
 development environment: Docker, kubectl/kind/helm/kustomize/kubie, Tekton/ko, Terraform, a
-Node/nvm toolchain, Claude Code, dotfile/shell config, a GNOME tiling extension, and local DNS
-(dnsmasq + systemd-resolved) so `*.devkit` resolves to the KinD control plane. `bootstrap.sh` is
-the public entry point that a fresh machine curls and runs; it installs Ansible and hands off to
-`playbook.yml`.
+Node/nvm toolchain, Claude Code, dotfile/shell config, a GNOME tiling extension, and dnsmasq
+(package only -- per-project KinD DNS entries, e.g. wildcard routing for a specific project's
+local domain, are each project's own responsibility to provision, not this playbook's; they used
+to live here and collided with at least one downstream project managing the same config path).
+`bootstrap.sh` is the public entry point that a fresh machine curls and runs; it installs Ansible
+and hands off to `playbook.yml`.
 
 ## Commands
 
@@ -69,9 +71,12 @@ this repo beyond the syntax-check above.
 - **Roles are one-per-concern, not one-per-file-from-the-old-monolith.** `kubernetes_tools` bundles
   kind/kubectl/helm/kustomize plus the inotify sysctl tuning kind needs; `kubie` is split out on
   its own because it also owns Kubie's config, bash completion, and the `kube-ps1` prompt helper;
-  `tekton` bundles `tkn` + `ko` since both are Tekton-adjacent CLIs; `kind_dns` owns both dnsmasq
-  and systemd-resolved because they're configured together to route the `kind_local_domain`
-  wildcard to the KinD control plane IP. When adding a new tool, prefer extending an existing
+  `tekton` bundles `tkn` + `ko` since both are Tekton-adjacent CLIs; `kind_dns` just installs the
+  `dnsmasq`/`dnsutils` packages now -- it used to also write a generic `*.devkit` wildcard config
+  and a matching systemd-resolved routing domain, but that collided with at least one downstream
+  project (tektoncd) managing the same `/etc/dnsmasq.d/devkit.conf` path itself with a more
+  specific config, so per-project DNS entries were dropped from this role entirely; each project
+  now owns provisioning its own local DNS routing. When adding a new tool, prefer extending an existing
   role's `tasks/main.yml` if it fits one of these groupings rather than creating a new role for a
   single task.
 - **Large inline shell content lives outside `tasks/main.yml`.** The kubie bash-completion script

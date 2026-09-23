@@ -1,6 +1,10 @@
 ---
 # -----------------------------------------------------------------------
-# DNS configuration: dnsmasq & systemd-resolved for KinD wildcard routing
+# dnsmasq: just the package. Per-project KinD DNS entries (e.g. tektoncd's
+# *.lab.devkit/*.core.devkit split) are provisioned by each project's own
+# tooling now, not here -- this role previously wrote a generic
+# /etc/dnsmasq.d/devkit.conf wildcard that collided with and periodically
+# clobbered tektoncd's Terraform-managed config at that same path.
 # -----------------------------------------------------------------------
 
 - name: Install dnsmasq and dnsutils
@@ -10,60 +14,3 @@
       - dnsmasq
       - dnsutils
     state: present
-
-- name: Configure dnsmasq for KinD local wildcard domain
-  become: true
-  copy:
-    dest: "/etc/dnsmasq.d/{{ kind_local_domain }}.conf"
-    owner: root
-    group: root
-    mode: '0644'
-    content: |
-      # Listen on loopback alternate port to avoid port 53 collision with systemd-resolved
-      port={{ kind_dnsmasq_port }}
-      listen-address=127.0.0.1
-      bind-interfaces
-
-      # Do not read upstream hosts or resolv.conf
-      no-resolv
-      no-hosts
-
-      # Wildcard routing for KinD Traefik/Ingress alias IP
-      address=/{{ kind_local_domain }}/{{ kind_control_plane_ip }}
-  notify: Restart dnsmasq
-
-- name: Ensure systemd-resolved drop-in directory exists
-  become: true
-  file:
-    path: /etc/systemd/resolved.conf.d
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
-
-- name: Configure systemd-resolved routing domain for KinD
-  become: true
-  copy:
-    dest: "/etc/systemd/resolved.conf.d/{{ kind_local_domain }}.conf"
-    owner: root
-    group: root
-    mode: '0644'
-    content: |
-      [Resolve]
-      DNS=127.0.0.1:{{ kind_dnsmasq_port }}
-      Domains=~{{ kind_local_domain }}
-  notify: Restart systemd-resolved
-
-- name: Ensure dnsmasq service is enabled and running
-  become: true
-  service:
-    name: dnsmasq
-    state: started
-    enabled: yes
-
-- name: Ensure systemd-resolved service is enabled and running
-  become: true
-  service:
-    name: systemd-resolved
-    state: started
-    enabled: yes
